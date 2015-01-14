@@ -31,4 +31,4 @@ The task of this project is to implement **Hash**, a simple shell programmed in 
     - [ ] .hashrc (*2 pts*)
     - [ ] `ping` (*3 pts*)
     - [x] `exit`
-    - [x] zgodno
+    - [x] spremanje rezultata naredbe u varijablu
