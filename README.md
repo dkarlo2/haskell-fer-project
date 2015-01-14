@@ -30,3 +30,5 @@ The task of this project is to implement **Hash**, a simple shell programmed in 
     - [x] `hexdump` (*3 pts*)
     - [ ] .hashrc (*2 pts*)
     - [ ] `ping` (*3 pts*)
+    - [x] `exit`
+    - [x] zgodno
