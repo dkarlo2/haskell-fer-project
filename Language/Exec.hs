@@ -1,6 +1,7 @@
 module Exec (runHashProgram, Command, VarTable,
             ScriptState(ScriptState)) where
 
+import Control.Exception
 import Control.Monad
 import qualified Data.Map as M
 import Expressions
@@ -86,7 +87,13 @@ runCommands cmdTable state@(ScriptState _ wd vars) ((Cmd name args):cs) = do
   cmdName <- getValue vars name
   cmdArgs <- mapM (getValue vars) args
   newState <- case M.lookup cmdName cmdTable of
-    Just command -> command cmdArgs state
+    Just command -> do
+      tmp <- try (command cmdArgs state) :: IO (Either IOException ScriptState)
+      case tmp of
+           Left e -> do
+             putStrLn $ "!!! Error: Executing command failed"
+             return $ ScriptState (return "") wd vars
+           Right c -> return c
     Nothing -> do
       putStrLn $ "!!! Error: Invalid command '" ++ cmdName ++ "'!"
       return $ ScriptState (return "") wd vars

@@ -7,6 +7,7 @@ import Data.List
 import Exec
 import Numeric
 import System.Directory
+import System.Exit
 import System.Path (copyDir)
 
 -- A map of (command name, command pairs), used to abstract command
@@ -17,7 +18,7 @@ commands = foldr (\(x,y) -> M.insert x y) M.empty [("echo", cmdEcho),
   ("create", cmdCreate), ("mvdir", cmdCpMvDir True),
   ("cpdir", cmdCpMvDir False), ("rndir", cmdRnDir), ("mkdir", cmdMkDir),
   ("rmdir", cmdRmDir), ("ls", cmdLs), ("pwd", cmdPwd), ("cd", cmdCd),
-  ("cat", cmdCat), ("hexdump", cmdHexDump)]
+  ("cat", cmdCat), ("hexdump", cmdHexDump), ("exit", cmdExit)]
 
 -- Constructs new ScriptState.
 ss :: String -> FilePath -> VarTable -> ScriptState
@@ -199,15 +200,21 @@ cmdCd _ (ScriptState _ wd vars) = do
 
 -- Executes "cat" command
 cmdCat :: Command
+cmdCat [] (ScriptState inStream wd vars) = do
+  files <- inStream
+  contents <- catAll $ lines files
+  return $ ss contents wd vars
 cmdCat xs (ScriptState _ wd vars) = do
   contents <- catAll xs
   return $ ss contents wd vars
-    where catAll :: [FilePath] -> IO String
-          catAll (x:xs) = do
-            s <- readFile x
-            ss <- catAll xs
-            return $ "File " ++ (name x) ++ "\n" ++ s ++ "\n" ++ ss
-          catAll _ = return ""
+
+-- Helper function for cmdCat.
+catAll :: [FilePath] -> IO String
+catAll (x:xs) = do
+  s <- readFile x
+  ss <- catAll xs
+  return $ "File " ++ (name x) ++ "\n" ++ s ++ "\n" ++ ss
+catAll _ = return ""
 
 -- Executes "hexdump" command.
 cmdHexDump :: Command
@@ -227,4 +234,9 @@ hexDump [] ys = ys
 toHex :: Char -> String
 toHex c = (if length h == 1 then "0" else "") ++ h
   where h = showHex (ord c) ""
+
+-- Executes "exit" command.
+cmdExit :: Command
+cmdExit _ _ = do
+  exitSuccess
 

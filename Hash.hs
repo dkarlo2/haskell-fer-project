@@ -4,10 +4,12 @@
 module Hash (runScript, runInteractive) where
 
 import Commands
+import Control.Exception
 import Exec
 import HashParser
 import System.Console.Haskeline
 import System.Directory
+import System.Exit
 
 -- Runs a .hash script
 runScript :: FilePath -> IO ()
@@ -36,8 +38,11 @@ runInteractive = do
                 putStrLn $ "!!! Parse error: " ++ err
                 runInteractive' fpss
               Right xs -> do
-                state <- runHashProgram commands fpss xs
-                runInteractive' (Right state)
+                tmp <- try (runHashProgram commands fpss xs)
+                  :: IO (Either (ExitCode) ScriptState)
+                case tmp of
+                     Left ExitSuccess -> return ()
+                     Right state -> runInteractive' (Right state)
 
 -- Gets next line from user input.
 getNextLine :: FilePath -> IO String
