@@ -42,6 +42,7 @@ runInteractive = do
                   :: IO (Either (ExitCode) ScriptState)
                 case tmp of
                      Left ExitSuccess -> return ()
+                     Left err -> throw err
                      Right state -> runInteractive' (Right state)
 
 -- Gets next line from user input.
